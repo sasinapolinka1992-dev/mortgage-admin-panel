@@ -8,10 +8,14 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Roboto', 'sans-serif'],
+      },
       colors: {
         primary: '#6699CC',
         secondary: '#6C757D',
         danger: '#DC3545',
+        uniGray: '#EAEAEA',
       },
       animation: {
         'fade-in-up': 'fadeIn 0.3s ease-out forwards',
