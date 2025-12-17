@@ -60,6 +60,28 @@ export const BankTable: React.FC<BankTableProps> = ({
                         </div>
                       )}
                     </div>
+                    // components/BankTable.tsx
+
+// ...
+<td className="px-3 py-4 align-top">
+    <div className="flex flex-col gap-1 items-center justify-center pt-2">
+        <button 
+            onClick={() => onMove(bank, 'up')}
+            disabled={index === 0} // Блокируем кнопку "Вверх" у первого элемента
+            className="..."
+        >
+            <ArrowUp size={16} />
+        </button>
+        <button 
+            onClick={() => onMove(bank, 'down')}
+            disabled={index === banks.length - 1} // Блокируем кнопку "Вниз" у последнего
+            className="..."
+        >
+            <ArrowDown size={16} />
+        </button>
+    </div>
+</td>
+// ...
                     <div>
                       <div className="font-semibold text-gray-900 text-base">
                         {bank.name}
