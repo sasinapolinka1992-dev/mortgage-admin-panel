@@ -10,6 +10,7 @@ export interface MortgageProgram {
   conditions?: string; // Описание условий программы
   specialConditions: boolean;
   autoRates: boolean; // Новое поле для автоставок
+  targetUnits?: string[]; // ID помещений. Если пусто или undefined - действует на все.
 }
 
 export interface Bank {
@@ -29,4 +30,21 @@ export interface ToastMessage {
   id: string;
   type: 'success' | 'error' | 'info';
   message: string;
+}
+
+// Интерфейсы для шахматки
+export interface HousingUnit {
+  id: string;
+  number: string;
+  floor: number;
+  riser: number; // номер на площадке (стояк)
+  rooms: number;
+  area: number;
+  price: number;
+}
+
+export interface BuildingSection {
+  floors: number;
+  unitsPerFloor: number;
+  units: HousingUnit[];
 }
