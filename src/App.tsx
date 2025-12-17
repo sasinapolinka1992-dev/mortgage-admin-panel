@@ -160,6 +160,22 @@ const App: React.FC = () => {
     setBanks(prev => prev.map(b => b.id === bank.id ? { ...b, isActive: status } : b));
     addToast('info', `Банк "${bank.name}" теперь ${status ? 'Активен' : 'Неактивен'}.`);
   };
+    const handleMoveBank = (bank: Bank, direction: 'up' | 'down') => {
+    setBanks(prev => {
+        const index = prev.findIndex(b => b.id === bank.id);
+        if (index === -1) return prev;
+        
+        const newBanks = [...prev];
+        if (direction === 'up' && index > 0) {
+            // Swap with previous
+            [newBanks[index - 1], newBanks[index]] = [newBanks[index], newBanks[index - 1]];
+        } else if (direction === 'down' && index < newBanks.length - 1) {
+             // Swap with next
+             [newBanks[index + 1], newBanks[index]] = [newBanks[index], newBanks[index + 1]];
+        }
+        return newBanks;
+    });
+  };
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-gray-900 bg-white">
