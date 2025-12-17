@@ -60,9 +60,7 @@ export const BankTable: React.FC<BankTableProps> = ({
                         </div>
                       )}
                     </div>
-                    // components/BankTable.tsx
 
-// ...
 <td className="px-3 py-4 align-top">
     <div className="flex flex-col gap-1 items-center justify-center pt-2">
         <button 
