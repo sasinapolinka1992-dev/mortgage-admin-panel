@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, CheckCircle, Zap } from 'lucide-react';
-import { Bank, MortgageProgram } from '../src/types';
+import { X, Plus, Trash2, CheckCircle, Zap, Grid3X3 } from 'lucide-react';
+import { Bank, MortgageProgram } from '../types';
 import { Button } from './ui/Button';
 import { Switch } from './ui/Switch';
+import { UnitSelectionModal } from './UnitSelectionModal';
 
 interface BankFormModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ const emptyProgram: MortgageProgram = {
   conditions: '',
   specialConditions: false,
   autoRates: false,
+  targetUnits: [], // Пустой массив = все помещения
 };
 
 const emptyBank: Bank = {
@@ -56,6 +58,10 @@ export const BankFormModal: React.FC<BankFormModalProps> = ({
   const [activeTab, setActiveTab] = useState<'general' | 'programs'>(initialTab);
   const [formData, setFormData] = useState<Bank>(emptyBank);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // State for Unit Selection Modal
+  const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
+  const [currentProgramIdForUnits, setCurrentProgramIdForUnits] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -95,8 +101,6 @@ export const BankFormModal: React.FC<BankFormModalProps> = ({
         
         // Симуляция подтягивания данных при включении автоставок
         if (field === 'autoRates' && value === true) {
-           // В реальном приложении здесь был бы запрос к API банка
-           // Симулируем данные в зависимости от типа программы
            if (updatedProgram.name.includes('Семейная')) {
              updatedProgram.rate = 6;
              updatedProgram.minDownPayment = 20;
@@ -130,13 +134,30 @@ export const BankFormModal: React.FC<BankFormModalProps> = ({
     });
   };
 
+  const openUnitSelection = (programId: string) => {
+    setCurrentProgramIdForUnits(programId);
+    setIsUnitModalOpen(true);
+  };
+
+  const handleUnitSelectionSave = (selectedIds: string[]) => {
+    if (currentProgramIdForUnits) {
+      updateProgram(currentProgramIdForUnits, 'targetUnits', selectedIds);
+    }
+  };
+
+  const getCurrentProgramUnits = () => {
+    if (!currentProgramIdForUnits) return [];
+    const program = formData.programs.find(p => p.id === currentProgramIdForUnits);
+    return program?.targetUnits || [];
+  };
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = 'Название банка обязательно';
     
     formData.programs.forEach((p, index) => {
       if (!p.name.trim()) newErrors[`program_${index}_name`] = 'Название программы обязательно';
-      if (!p.autoRates) { // Проверяем валидацию только если не автоставки
+      if (!p.autoRates) {
           if (p.rate < 0 || p.rate > 30) newErrors[`program_${index}_rate`] = 'Ставка должна быть от 0 до 30';
           if (p.minDownPayment < 0 || p.minDownPayment > 100) newErrors[`program_${index}_downpayment`] = 'Некорректный взнос';
       }
@@ -156,6 +177,7 @@ export const BankFormModal: React.FC<BankFormModalProps> = ({
   if (!isOpen) return null;
 
   return (
+    <>
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col animate-fade-in-up">
         {/* Header */}
@@ -281,22 +303,37 @@ export const BankFormModal: React.FC<BankFormModalProps> = ({
                         </div>
                         
                         <div className="mb-4 pr-10">
-                            <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg mb-4">
-                               <div className="flex items-center gap-2">
-                                  <div className={`p-1.5 rounded-full ${program.autoRates ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
-                                    <Zap size={16} />
-                                  </div>
-                                  <div>
-                                      <div className="text-sm font-semibold text-gray-900">Автоставки</div>
-                                      <div className="text-xs text-gray-500">
-                                          {program.autoRates ? 'Данные синхронизируются автоматически' : 'Ручное управление ставками'}
+                            {/* Верхняя панель программы */}
+                            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                                {/* Автоставки */}
+                                <div className="flex items-center justify-between bg-gray-50 p-2 rounded-lg flex-1">
+                                   <div className="flex items-center gap-2">
+                                      <div className={`p-1 rounded-full ${program.autoRates ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
+                                        <Zap size={14} />
                                       </div>
-                                  </div>
-                               </div>
-                               <Switch 
-                                    checked={program.autoRates} 
-                                    onChange={(val) => updateProgram(program.id, 'autoRates', val)} 
-                               />
+                                      <div className="text-xs font-semibold text-gray-700">Автоставки</div>
+                                   </div>
+                                   <Switch 
+                                        checked={program.autoRates} 
+                                        onChange={(val) => updateProgram(program.id, 'autoRates', val)} 
+                                   />
+                                </div>
+                                
+                                {/* Выбор помещений */}
+                                <div className="flex-1">
+                                    <Button 
+                                        variant="outline" 
+                                        className={`w-full justify-between bg-white ${program.targetUnits && program.targetUnits.length > 0 ? 'text-primary border-primary bg-blue-50' : 'text-gray-600'}`}
+                                        onClick={() => openUnitSelection(program.id)}
+                                        icon={<Grid3X3 size={16} />}
+                                    >
+                                        <span className="truncate">
+                                            {program.targetUnits && program.targetUnits.length > 0 
+                                                ? `Выбрано помещений: ${program.targetUnits.length}` 
+                                                : 'Действует на все помещения'}
+                                        </span>
+                                    </Button>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -444,5 +481,14 @@ export const BankFormModal: React.FC<BankFormModalProps> = ({
         </div>
       </div>
     </div>
+
+    {/* Unit Selection Modal */}
+    <UnitSelectionModal 
+        isOpen={isUnitModalOpen} 
+        onClose={() => { setIsUnitModalOpen(false); setCurrentProgramIdForUnits(null); }}
+        onSave={handleUnitSelectionSave}
+        initialSelection={getCurrentProgramUnits()}
+    />
+    </>
   );
 };
