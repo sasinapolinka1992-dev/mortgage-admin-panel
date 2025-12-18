@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Plus, Filter, Download, ChevronDown } from 'lucide-react';
-import { initialBanks } from '../services/mockData';
+import { initialBanks } from './services/mockData';
 import { Bank, BankFilter, ProgramFilter, ToastMessage } from './types';
-import { Button } from '../components/ui/Button';
-import { Switch } from '../components/ui/Switch';
-import { BankTable } from '../components/BankTable';
-import { BankFormModal } from '../components/BankFormModal';
-import { ConfirmationModal } from '../components/ConfirmationModal';
-import { ToastContainer } from '../components/Toast';
+import { Button } from './components/ui/Button';
+import { Switch } from './components/ui/Switch';
+import { BankTable } from './components/BankTable';
+import { BankFormModal } from './components/BankFormModal';
+import { ConfirmationModal } from './components/ConfirmationModal';
+import { ToastContainer } from './components/Toast';
 
 const PREDEFINED_BANKS = [
   { name: 'Сбербанк', logo: 'https://companieslogo.com/img/orig/SBER.ME-1004a469.png?t=1720244493' },
@@ -160,7 +160,8 @@ const App: React.FC = () => {
     setBanks(prev => prev.map(b => b.id === bank.id ? { ...b, isActive: status } : b));
     addToast('info', `Банк "${bank.name}" теперь ${status ? 'Активен' : 'Неактивен'}.`);
   };
-    const handleMoveBank = (bank: Bank, direction: 'up' | 'down') => {
+
+  const handleMoveBank = (bank: Bank, direction: 'up' | 'down') => {
     setBanks(prev => {
         const index = prev.findIndex(b => b.id === bank.id);
         if (index === -1) return prev;
@@ -300,6 +301,7 @@ const App: React.FC = () => {
           onDelete={handleDeleteClick}
           onToggleStatus={handleToggleStatus}
           onAddProgram={handleAddProgramDirectly}
+          onMove={handleMoveBank}
         />
 
       </main>
